@@ -100,7 +100,7 @@ Answers the question: "how do we measure if our recommendations are actually goo
 - Recall@20: what fraction of the user's true test items appear in the top 20?
 - NDCG@20: same idea, but items ranked higher in the list count more than items ranked lower
 
-### `notebooks/02_experiments.ipynb` ⬜ TODO
+### `notebooks/02_experiments.ipynb` ✅ DONE
 Answers the question: "how do our results compare to the paper, and what affects performance?"
 - Runs training with K = 1, 2, 3, 4 layers and plots Recall@20 vs number of layers
 - Plots training loss and Recall@20 over epochs (convergence curves)
