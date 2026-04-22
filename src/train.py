@@ -2,7 +2,6 @@ import random
 import sys
 from pathlib import Path
 
-import numpy as np
 import torch
 
 sys.path.insert(0, str(Path(__file__).parent))
@@ -57,6 +56,9 @@ def train(data_path, emb_dim=64, n_layers=3, lr=0.001, reg_lambda=1e-4,
     dataset  = GowallaDataset(data_path)
     norm_adj = dataset.norm_adj.to(device)
 
+    # number of batches per epoch = one full pass through training interactions
+    n_batches = max(1, len(dataset.train_pairs) // batch_size)
+
     model = LightGCN(
         n_users  = dataset.n_users,
         n_items  = dataset.n_items,
@@ -68,7 +70,9 @@ def train(data_path, emb_dim=64, n_layers=3, lr=0.001, reg_lambda=1e-4,
     optimizer = torch.optim.Adam(model.parameters(), lr=lr)
 
     print(f"Training LightGCN — layers={n_layers}, dim={emb_dim}, "
-          f"lr={lr}, λ={reg_lambda}, device={device}\n")
+          f"lr={lr}, λ={reg_lambda}, device={device}")
+    print(f"Batches per epoch: {n_batches}  "
+          f"({len(dataset.train_pairs):,} interactions / batch_size {batch_size})\n")
     print(f"{'Epoch':>6} | {'Loss':>8} | {'Recall@20':>10} | {'NDCG@20':>9}")
     print("-" * 45)
 
@@ -76,26 +80,31 @@ def train(data_path, emb_dim=64, n_layers=3, lr=0.001, reg_lambda=1e-4,
 
     for epoch in range(1, n_epochs + 1):
         model.train()
-        users, pos_items, neg_items = _sample_batch(
-            dataset.train_user_items, dataset.n_items, batch_size
-        )
-        users     = users.to(device)
-        pos_items = pos_items.to(device)
-        neg_items = neg_items.to(device)
+        total_loss = 0.0
 
-        optimizer.zero_grad()
-        loss = _bpr_loss(model, users, pos_items, neg_items, reg_lambda)
-        loss.backward()
-        optimizer.step()
+        for _ in range(n_batches):
+            users, pos_items, neg_items = _sample_batch(
+                dataset.train_user_items, dataset.n_items, batch_size
+            )
+            users     = users.to(device)
+            pos_items = pos_items.to(device)
+            neg_items = neg_items.to(device)
+
+            optimizer.zero_grad()
+            loss = _bpr_loss(model, users, pos_items, neg_items, reg_lambda)
+            loss.backward()
+            optimizer.step()
+            total_loss += loss.item()
 
         if epoch % eval_every == 0:
+            avg_loss = total_loss / n_batches
             recall, ndcg = recall_and_ndcg_at_k(
                 model, dataset.train_user_items, dataset.test_user_items, k=20
             )
             marker = " ←" if recall > best_recall else ""
             if recall > best_recall:
                 best_recall, best_ndcg = recall, ndcg
-            print(f"{epoch:>6} | {loss.item():>8.4f} | {recall:>10.4f} | {ndcg:>9.4f}{marker}")
+            print(f"{epoch:>6} | {avg_loss:>8.4f} | {recall:>10.4f} | {ndcg:>9.4f}{marker}")
 
     print("-" * 45)
     print(f"\nBest  Recall@20 : {best_recall:.4f}   (paper: 0.1823)")
@@ -127,7 +136,7 @@ if __name__ == "__main__":
         lr          = 0.001,
         reg_lambda  = 1e-4,
         batch_size  = 1024,
-        n_epochs    = 1000,
-        eval_every  = 20,
+        n_epochs    = 200,
+        eval_every  = 5,
         device      = device,
     )
