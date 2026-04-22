@@ -85,7 +85,7 @@ Answers the question: "what is the LightGCN model and how does it compute recomm
 - After K layers: averages all layer outputs as the final embedding (Eq. 4 from paper)
 - Predicts a score for (user, item) as the dot product of their final embeddings
 
-### `src/train.py` ⬜ TODO
+### `src/train.py` ✅ DONE
 Answers the question: "how do we teach the model what good recommendations look like?"
 - Runs the training loop (1000 epochs)
 - At each step: samples a (user, positive item, negative item) triple
@@ -93,7 +93,7 @@ Answers the question: "how do we teach the model what good recommendations look 
 - Updates embeddings using Adam optimizer with L2 regularization
 - Evaluates on the test set every 20 epochs and prints Recall@20 and NDCG@20
 
-### `src/evaluate.py` ⬜ TODO
+### `src/evaluate.py` ✅ DONE
 Answers the question: "how do we measure if our recommendations are actually good?"
 - For each test user: scores all 40,981 items, removes the ones already seen in training
 - Takes the top 20 highest-scored items as the recommendation list

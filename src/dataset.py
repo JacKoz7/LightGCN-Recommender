@@ -61,4 +61,4 @@ class GowallaDataset:
     def _sparse_to_tensor(self, coo):
         indices = torch.LongTensor(np.vstack([coo.row, coo.col]))
         values  = torch.FloatTensor(coo.data)
-        return torch.sparse_coo_tensor(indices, values, torch.Size(coo.shape))
+        return torch.sparse_coo_tensor(indices, values, torch.Size(coo.shape), check_invariants=False)
