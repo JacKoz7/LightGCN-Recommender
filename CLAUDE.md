@@ -29,15 +29,15 @@ Two-person team. The user (Jacek) handles **all code implementation**.
 |------|---------|
 | VS Code (local) | Code editing, pushed to GitHub repo `ZED_LightGCN` |
 | GitHub | Version control. Folders: `data/`, `notebooks/`, `src/` |
-| Google Drive | Storage for large datasets (Gowalla) — NOT in git |
-| Google Colab | Heavy training runs (GPU T4), mounts Drive, clones GitHub repo |
+| Kaggle       | Heavy training runs (GPU P100/T4) + dataset hosting for Gowalla |
 | PyTorch | Deep learning framework for LightGCN |
 | Jupyter Notebooks | Exploration and experiment analysis |
 
 ## Dataset
 
 **Gowalla** — location check-in dataset, sourced from the original LightGCN authors' repository.
-- Stored on Google Drive (too large for GitHub)
+- Stored on Kaggle Datasets (too large for GitHub), dataset slug: `jackkozx/gowalla-dataset`
+- Kaggle input path: `/kaggle/input/datasets/jackkozx/gowalla-dataset`
 - Format: `train.txt` and `test.txt`, each line = `user_id item_id1 item_id2 ...`
 - `data/` folder is in `.gitignore`
 
@@ -45,7 +45,7 @@ Two-person team. The user (Jacek) handles **all code implementation**.
 
 ```
 LightGCN-Recommender/
-├── data/                    # gitignored — datasets live here (or on Drive)
+├── data/                    # gitignored — datasets live here locally (on Kaggle: input path)
 ├── notebooks/
 │   ├── 01_data_exploration.ipynb   # EDA of Gowalla dataset
 │   └── 02_experiments.ipynb        # Ablation study, result comparison
@@ -144,6 +144,31 @@ Answers the question: "how do our results compare to the paper, and what affects
 - Convergence plots (loss and metrics vs. epoch)
 - Results table compared to Table 3 in the paper
 
+## Empirical Training Results (Gowalla, K=3, emb_dim=64, lr=0.001, λ=1e-4)
+
+Completed training run via `src/train.py` on Kaggle (GPU), 145 epochs:
+
+| Epoch | Loss   | Recall@20 | NDCG@20 |
+|-------|--------|-----------|---------|
+| 60    | 0.0294 | 0.1554    | 0.1334  |
+| 80    | 0.0252 | 0.1614    | 0.1382  |
+| 100   | ~0.022 | ~0.1640   | ~0.1410 |
+| 130   | 0.0212 | 0.1674    | 0.1434  |
+| 140   | 0.0210 | 0.1685    | 0.1444  ← peak |
+| 145   | 0.0207 | 0.1683    | 0.1442  ← first drop |
+
+**Convergence findings:**
+- Biggest quality jump: first 60 epochs (gains of ~0.01/5 epochs → ~0.002/5 epochs)
+- Model effectively converges: epoch 130–145
+- True plateau (first Recall drop): epoch 145
+- 100 epochs captures ~95% of converged Recall@20
+- K-curve separation (K=1 vs K=2 vs K=3) clearly visible by epoch 50
+
+**Experiments notebook:** set to `n_epochs=100, eval_every=5` (~3 h on Kaggle GPU; 145 epochs took ~4 h).
+
+**Gap vs paper** (Table 3: Recall@20=0.1823): our 145-epoch result is 0.1685.
+Explained by shorter training — paper uses up to 1000 epochs.
+
 ## Key Paper Details to Stay Faithful To
 
 - **No feature transformation**: LightGCN removes the weight matrices W from standard GCN
@@ -153,18 +178,14 @@ Answers the question: "how do our results compare to the paper, and what affects
 - **BPR loss** with L2 regularization only on the 0-th layer embeddings (not all layers)
 - **Reported results in paper**: Recall@20=0.1327, NDCG@20=0.0760 on Gowalla
 
-## Colab Setup Cells
+## Kaggle Setup
 
-```python
-# Cell 1 — Mount Drive
-from google.colab import drive
-drive.mount('/content/drive')
-
-# Cell 2 — Clone repo and navigate
-%cd /content
-!git clone https://github.com/JacKoz7/LightGCN-Recommender
-%cd LightGCN-Recommender
-```
+1. Create a new notebook on Kaggle
+2. Add the Gowalla dataset (`jackkozx/gowalla-dataset`) via **Add Data**
+3. Enable GPU accelerator in Settings
+4. Use `%%writefile src/filename.py` cells to write each `src/` module before importing
+5. Data path: `/kaggle/input/datasets/jackkozx/gowalla-dataset`
+6. Output/checkpoints: `/kaggle/working/`
 
 ## User Background
 

@@ -112,6 +112,7 @@ def train(data_path, emb_dim=64, n_layers=3, lr=0.001, reg_lambda=1e-4,
 
 
 if __name__ == "__main__":
+    print("Starting training...\n")
     if torch.cuda.is_available():
         device = "cuda"
     elif torch.backends.mps.is_available():
