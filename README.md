@@ -77,20 +77,22 @@ Evaluation metric: **Recall@20** and **NDCG@20** using the all-ranking protocol 
 for each test user, rank all items (minus training items) and check whether
 the true test items appear in the top 20.
 
-| | Recall@20 | NDCG@20 |
+| Configuration | Recall@20 | NDCG@20 |
 |---|---|---|
 | Paper (Table 3, K=3) | 0.1823 | 0.1554 |
-| Our implementation | *(to be filled after full run)* | *(to be filled)* |
+| Our implementation, K=2, 100 epochs | **0.1671** | **0.1439** |
+| Our implementation, K=3, 100 epochs | 0.1652 | 0.1411 |
+| Our implementation, K=1, 100 epochs | 0.1636 | 0.1410 |
+| Our implementation, K=4, 100 epochs | 0.1606 | 0.1377 |
 
-Training converges around epoch 150–200. Results at selected checkpoints:
+K-layer ablation (100 epochs each, `emb_dim=64, lr=0.001, λ=1e-4`):
 
-| Epoch | Recall@20 | NDCG@20 |
-|-------|-----------|---------|
-| 5 | 0.1080 | 0.0941 |
-| 10 | 0.1195 | 0.1044 |
-| 20 | 0.1337 | 0.1159 |
-| 35 | 0.1459 | 0.1256 |
-| 200 | *(running)* | *(running)* |
+| K | Best Recall@20 | Best NDCG@20 |
+|---|---|---|
+| 1 | 0.1636 | 0.1410 |
+| **2** | **0.1671** | **0.1439** |
+| 3 | 0.1652 | 0.1411 |
+| 4 | 0.1606 | 0.1377 |
 
 ---
 
@@ -115,6 +117,14 @@ plateaus around epoch 150–200, making the full 1000-epoch run unnecessary.
 LightGCN achieves competitive results with a single embedding table and one line
 of computation per layer (`E = Ã · E`). The entire forward pass is ~10 lines of PyTorch.
 This confirms the paper's main argument: complexity hurts, not helps, for this task.
+
+**Finding 5 — K=2 wins at 100 epochs, K=3 likely wins at full convergence.**
+
+The K-layer ablation run (100 epochs each) produced: K=2 > K=3 > K=1 > K=4.
+This differs from the paper's K=3 optimum because K=3 converges more slowly than K=2 —
+at epoch 100, K=3 is still climbing while K=2 has nearly plateaued.
+The over-smoothing effect is clearly visible at K=4 (worst result), confirming the paper's
+core claim. The optimal K likely lands at 3 with sufficient training (the paper uses up to 1000 epochs).
 
 **Finding 4 — Sparse matrix representation is essential.**
 
