@@ -125,6 +125,11 @@ if __name__ == "__main__":
     # local path
     data_path = Path(__file__).parent.parent / "data" / "gowalla"
 
+    # Kaggle path override
+    kaggle_path = Path("/kaggle/input/datasets/jackkozx/gowalla-dataset")
+    if kaggle_path.exists():
+        data_path = kaggle_path
+
     # Colab path override
     colab_path = Path("/content/drive/MyDrive/ZED_project_data/gowalla")
     if colab_path.exists():
@@ -137,7 +142,7 @@ if __name__ == "__main__":
         lr          = 0.001,
         reg_lambda  = 1e-4,
         batch_size  = 1024,
-        n_epochs    = 200,
-        eval_every  = 5,
+        n_epochs    = 400,
+        eval_every  = 10,
         device      = device,
     )
