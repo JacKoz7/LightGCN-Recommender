@@ -146,28 +146,30 @@ Answers the question: "how do our results compare to the paper, and what affects
 
 ## Empirical Training Results (Gowalla, K=3, emb_dim=64, lr=0.001, λ=1e-4)
 
-Completed training run via `src/train.py` on Kaggle (GPU), 145 epochs:
+Completed 400-epoch training run via `src/train.py` on Kaggle (GPU P100):
 
 | Epoch | Loss   | Recall@20 | NDCG@20 |
 |-------|--------|-----------|---------|
-| 60    | 0.0294 | 0.1554    | 0.1334  |
-| 80    | 0.0252 | 0.1614    | 0.1382  |
-| 100   | ~0.022 | ~0.1640   | ~0.1410 |
-| 130   | 0.0212 | 0.1674    | 0.1434  |
-| 140   | 0.0210 | 0.1685    | 0.1444  ← peak |
-| 145   | 0.0207 | 0.1683    | 0.1442  ← first drop |
+| 50    | 0.0319 | 0.1518    | 0.1309  |
+| 100   | 0.0234 | 0.1648    | 0.1412  |
+| 150   | 0.0205 | 0.1708    | 0.1458  |
+| 200   | 0.0190 | 0.1728    | 0.1476  |
+| 250   | 0.0184 | 0.1747    | 0.1494  |
+| 300   | 0.0179 | 0.1762    | 0.1503  |
+| 350   | 0.0177 | 0.1764    | 0.1505  |
+| 400   | 0.0177 | 0.1773    | 0.1510  ← final best |
 
 **Convergence findings:**
-- Biggest quality jump: first 60 epochs (gains of ~0.01/5 epochs → ~0.002/5 epochs)
-- Model effectively converges: epoch 130–145
-- True plateau (first Recall drop): epoch 145
-- 100 epochs captures ~95% of converged Recall@20
-- K-curve separation (K=1 vs K=2 vs K=3) clearly visible by epoch 50
+- Biggest quality jump: first 100 epochs (+0.046 Recall@20 total)
+- Rapid deceleration: epoch 100–200 (+0.008), 200–300 (+0.003), 300–400 (+0.001)
+- True plateau: around epoch 350 (gains <0.001 per 50 epochs after that)
+- K-curve separation (K=1 vs K=2 vs K=3 vs K=4) clearly visible by epoch 50
 
-**Experiments notebook:** set to `n_epochs=100, eval_every=5` (~3 h on Kaggle GPU; 145 epochs took ~4 h).
+**Experiments notebook (K-ablation):** 150 epochs each, eval_every=5 (~4.3 h on Kaggle GPU per K).
+Best K at 150 epochs: K=2 (Recall@20=0.1712) > K=3 (0.1701) > K=1=K=4 (0.1663).
 
-**Gap vs paper** (Table 3: Recall@20=0.1823): our 145-epoch result is 0.1685.
-Explained by shorter training — paper uses up to 1000 epochs.
+**Gap vs paper** (Table 3: Recall@20=0.1823): our 400-epoch result is 0.1773 → gap of **2.7%**.
+Paper trains for ~1000 epochs; our training confirms convergence is nearly complete by epoch 400.
 
 ## Key Paper Details to Stay Faithful To
 
