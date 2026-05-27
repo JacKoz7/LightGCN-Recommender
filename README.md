@@ -95,8 +95,8 @@ K-layer ablation (150 epochs each, `emb_dim=64, lr=0.001, λ=1e-4`):
 | 3 | 0.1701 | 0.1456 | −6.7% |
 | 4 | 0.1663 | 0.1419 | −8.7% |
 
-> K=1 and K=2 at 150 epochs already match or exceed the paper. K=3 and K=4 converge
-> more slowly and need more epochs to reach their full potential.
+> K=1 at 150 epochs already exceeds the paper's K=1. K=2 comes within 1.4% of the paper's K=2.
+> K=3 and K=4 converge more slowly and need more epochs to reach their full potential.
 
 ---
 
@@ -127,7 +127,7 @@ LightGCN achieves competitive results with a single embedding table and one line
 of computation per layer (`E = Ã · E`). The entire forward pass is ~10 lines of PyTorch.
 This confirms the paper's main argument: complexity hurts, not helps, for this task.
 
-**Finding 5 — K=2 wins at 150 epochs, K=3 likely wins at full convergence.**
+**Finding 4 — K=2 wins at 150 epochs, K=3 likely wins at full convergence.**
 
 The K-layer ablation (150 epochs each) produced: K=2 (0.1712) > K=3 (0.1701) > K=1 = K=4 (0.1663).
 This differs from the paper's K=3 optimum because K=3 converges more slowly — it needs more
@@ -135,7 +135,7 @@ epochs to propagate 3-hop information effectively. Our separate 400-epoch run wi
 0.1773, confirming K=3 would overtake K=2 with enough training. The over-smoothing effect is
 clearly visible at K=4 (worst despite being deepest), confirming the paper's core claim.
 
-**Finding 4 — Sparse matrix representation is essential.**
+**Finding 5 — Sparse matrix representation is essential.**
 
 The user-item interaction matrix has 1.2 billion entries. Storing it densely would
 require ~5 GB of RAM. Using scipy sparse matrices reduces this to a few MB,
